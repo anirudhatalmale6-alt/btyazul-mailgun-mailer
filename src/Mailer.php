@@ -200,6 +200,40 @@ class Mailer
     }
 
     /**
+     * PLAIN-TEXT EMAIL
+     *
+     * A direct replacement for PHP's own mail() function, for the short
+     * internal notices that do not need a designed layout - the "nice sale"
+     * note and the low-stock warning.
+     *
+     * @param string $to      Recipient address.
+     * @param string $subject
+     * @param string $body    Plain text. Line breaks are kept.
+     * @param string $tag     Optional Mailgun tag for the dashboard.
+     *
+     * @return array The result from Mailgun::send()
+     */
+    public static function plain($to, $subject, $body, $tag = 'notice')
+    {
+        // Mailgun requires an HTML part as well, so wrap the text in minimal
+        // markup. <pre> keeps the line breaks exactly as written.
+        $html = '<pre style="font-family:Arial,Helvetica,sans-serif; font-size:15px; white-space:pre-wrap;">'
+              . htmlspecialchars($body, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+              . '</pre>';
+
+        return self::client()->send([
+            'from'      => self::from(),
+            'to'        => $to,
+            'reply_to'  => Env::get('MAIL_REPLY_TO', ''),
+            'subject'   => $subject,
+            'html'      => $html,
+            'text'      => $body,
+            'tag'       => $tag,
+            'variables' => ['email_type' => 'plain_notice'],
+        ]);
+    }
+
+    /**
      * Build the "From" header, e.g.  BT Yazul <orders@mg.btyazul.com>
      */
     private static function from()
