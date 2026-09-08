@@ -1,0 +1,28 @@
+BT Yazul
+
+THANK YOU FOR YOUR ORDER
+
+Hi Ana Ruiz,
+
+We have received your order and it is now confirmed.
+
+Order number: BT-1042
+Date: 8 September 2026
+
+ITEMS
+- Sample product one x2  $12.50
+- Sample product two x1  $40.00
+- Sample product three x3  $4.00
+Subtotal: $77.00
+Shipping: $5.00
+TOTAL: $82.00
+
+DELIVERING TO
+12 Example Street
+Apartment 4
+Springfield, 10101
+
+If anything looks wrong, just reply to this email and we will sort it out.
+
+BT Yazul
+https://btyazul.com

@@ -1,0 +1,8 @@
+# The real settings file holds the Mailgun API key. Never commit it.
+.env
+*.env
+!.env.example
+
+# Logs
+*.log
+logs/
