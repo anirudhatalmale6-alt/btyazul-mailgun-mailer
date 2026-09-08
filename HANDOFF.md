@@ -3,6 +3,43 @@
 This is the guide for maintaining the email side of the site. It is written to
 be readable without a technical background.
 
+**Status: live and working since 8 September 2026.** Real emails have been sent
+from the server and confirmed delivered to Gmail.
+
+---
+
+## Where everything lives on your server
+
+Everything is inside your web folder (`public_html` / `btyazul.com`):
+
+```
+index.php               your site - the email calls are in the "make_payment" section
+func.php                your functions - Send_Email() and Send_Order_Confirmation_Email()
+mailgun-webhook.php     receives bounce and spam reports from Mailgun
+mailer/                 the email engine - blocked from the web by .htaccess
+  .env                    YOUR API KEY LIVES HERE. Nothing else holds it.
+  .htaccess               "Require all denied" - this is what hides the key
+  bootstrap.php
+  src/                    Env.php, Mailgun.php, Mailer.php
+  templates/              the four email layouts
+  logs/                   mail.log and suppressions.log
+```
+
+The `mailer` folder is blocked from the internet. Tested from outside: every
+file in it returns "403 Forbidden" while `index.php` still loads normally.
+
+## Your DNS records — all five verified 8 Sep 2026
+
+| Type | Name | Points to |
+|---|---|---|
+| TXT | `mg.btyazul.com` | `v=spf1 include:mailgun.org ~all` |
+| TXT | `krs._domainkey.mg.btyazul.com` | the 2048-bit DKIM key |
+| CNAME | `email.mg.btyazul.com` | `mailgun.org` |
+| MX | `mg.btyazul.com` | `mxa.mailgun.org` priority 10 |
+| MX | `mg.btyazul.com` | `mxb.mailgun.org` priority 10 |
+
+Mailgun reports the domain as **active** with all five valid. Leave them alone.
+
 ---
 
 ## What this does
@@ -184,24 +221,37 @@ Point it only at an address you own.
 
 ---
 
-## Bounces and spam complaints
+## Bounces and spam complaints — already set up
 
-`public/mailgun-webhook.php` goes in the public folder, and its address is
-registered in Mailgun under **Sending → Webhooks** for these events:
-
-- Permanent Failure
-- Temporary Failure
-- Spam Complaints
-- Unsubscribes
-- Delivered
+`mailgun-webhook.php` is in your web folder and is already registered in your
+Mailgun account for all five events: permanent failure, temporary failure, spam
+complaints, unsubscribes and delivered.
 
 When an email cannot be delivered, or a customer marks it as spam, Mailgun
-notifies that page and it is recorded in the file named by
-`MAIL_SUPPRESSION_LOG`. That log is how you answer "the customer says they
-never got their order confirmation".
+notifies that page and it is written to `mailer/logs/suppressions.log`. That log
+is how you answer "the customer says they never got their order confirmation" —
+it records the address, the reason, and **which order number** it belonged to.
 
-Every notification is verified against Mailgun's signature first, so nobody can
-send you fake bounce reports.
+Every notification is checked against Mailgun's signature before it is believed,
+so nobody can feed you fake bounce reports. This was tested three ways on your
+live server:
+
+- a correctly signed report → accepted and written to the log
+- a report signed with the wrong key → rejected
+- a genuine report replayed an hour later → rejected
+
+## Things worth knowing about your site
+
+- **Your Buy button is commented out** in `index.php`. That was already the case
+  before this work started, and matches the payment code not being written yet.
+  Until it is switched back on, no real purchase can happen, so the customer
+  confirmation cannot fire from a real order.
+- **The order number** in the customer's email is the row number from your
+  `sale` table.
+- **Quotes in customer names are now handled.** A customer called O'Brien used
+  to break the database insert, which lost both the order and the email. See
+  `SQL_Safe()` in `func.php`.
+- **Your server runs PHP 7.2.** Anything added later must stay within that.
 
 ---
 
