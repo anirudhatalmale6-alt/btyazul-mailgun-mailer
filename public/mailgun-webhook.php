@@ -21,7 +21,13 @@
  * check, someone could invent fake bounces for your customers.
  */
 
-require_once dirname(__DIR__) . '/bootstrap.php';
+// Works whether this file sits inside the mailer folder (mailer/public/) or is
+// copied straight into the web root with the mailer folder beside it.
+$bootstrap = is_file(dirname(__DIR__) . '/bootstrap.php')
+    ? dirname(__DIR__) . '/bootstrap.php'
+    : __DIR__ . '/mailer/bootstrap.php';
+
+require_once $bootstrap;
 
 // Mailgun only ever POSTs here.
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
